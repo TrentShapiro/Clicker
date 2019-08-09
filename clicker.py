@@ -1,38 +1,16 @@
+import math
+import time
+import multiprocessing
 import pyautogui as pag
 import numpy as np
 from random import randrange as rrange
-import math
-import multiprocessing
 from pynput import keyboard
-# import multiprocessing
-# import time
-# import pyHook, pyautogui, pythoncom
-# import queue
+
 
 # Setup pyautogui constants
 pag.MINIMUM_DURATION = 0  # Default: 0.1
-pag.MINIMUM_SLEEP = 0  # Default: 0.05
-pag.PAUSE = 0  # Default: 0.1
-
-
-class Clicker(multiprocessing.Process):
-    def __init__(self, queue):
-        multiprocessing.Process.__init__(self)
-        self.queue = queue
-
-    def run(self):
-        while True:
-            try:
-                task = self.queue.get(block=False)
-                if task == "Start":
-                    print("moving")
-                    mouse_square()
-
-            except task == "Exit":
-                print("ending")
-                self.queue.task_done()
-                break
-        return
+pag.MINIMUM_SLEEP = 0.01  # Default: 0.05
+pag.PAUSE = 0.01  # Default: 0.1
 
 
 def rotate_x(x, y, xo, yo, theta):
@@ -55,7 +33,7 @@ def mouse_square():
     x_mid = x1 + 250
     y_mid = y1 + 250
 
-    p_size = int(np.floor((abs(x_rel) + abs(y_rel))/4))
+    p_size = int(np.floor((abs(x_rel) + abs(y_rel)) / 4))
     p_x = np.linspace(x1, x2, p_size)
     p_y = np.linspace(y1, y2, p_size)
 
@@ -111,26 +89,64 @@ def mouse_square():
                    , pag.easeInCubic)
 
 
-def on_press(key):
-    if key.char == '[':
-        print('[ key read')
-        # queue.put("Start")
-        # queue.join()
+def run_mouse():
+    while True:
+        mouse_square()
 
 
-def on_release(key):
-    if key.char == ']':
-        # queue.put("Exit")
-        # queue.join()
-        # Stop listener
-        return False
+class ClickThread:
+    thread_process = None
+
+    def __init__(self):
+        self.thread_process = multiprocessing.Process(target=run_mouse)
+
+    def start(self):
+        self.thread_process.start()
+
+    def stop(self):
+        if self.thread_process.is_alive():
+            self.thread_process.terminate()
+
+    def is_alive(self):
+        return self.thread_process.is_alive()
+
+    def restart(self):
+        if self.thread_process.is_alive():
+            self.thread_process.terminate()
+
+        self.__init__()
+        self.start()
 
 
 if __name__ == '__main__':
-    # Establish communication queues
-    queue = multiprocessing.JoinableQueue()
-    # create a hook manager]
+    def on_press(key):
+        try:
+            press = key.char
+        except AttributeError:
+            press = key
+
+        if press == '[':
+            print('start')
+            if running_thread.is_alive():
+                running_thread.stop()
+
+            running_thread.restart()
+
+    def on_release(key):
+        try:
+            press = key.char
+        except AttributeError:
+            press = key
+
+        if press == ']':
+            print('Stop')
+            running_thread.stop()
+
+        if press == keyboard.Key.esc:
+            print('Exit')
+            return False
+
+    running_thread = ClickThread()
+
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
-
-Clicker.run(self)
