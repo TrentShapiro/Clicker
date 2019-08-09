@@ -1,7 +1,9 @@
 # Clicker
 
-[ to start
-] to stop
+
+'[' to start
+
+']' to stop
 
 esc to exit
 
