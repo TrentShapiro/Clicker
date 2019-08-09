@@ -8,3 +8,5 @@
 esc to exit
 
 changing shape/size later, otherwise change mouse_square() method to [insert shape here]
+
+*windows only, oops*
